@@ -1,16 +1,20 @@
-# 🚗 Vehicle Maintenance Tracker
+<div align="center">
+<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
+</div>
 
-A full-stack web application designed to help users track their vehicles, log service history, and set intelligent reminders for upcoming maintenance. Stop relying on sticky notes and glovebox receipts—keep your garage organized in one place.
+# Run and deploy your AI Studio app
 
----
+This contains everything you need to run your app locally.
 
-## ✨ Features
+View your app in AI Studio: https://ai.studio/apps/9c8b1862-a9ad-4df1-9ed6-5f3147d28514
 
-* **Dashboard Overview:** Get a birds-eye view of your garage, quick stats, and immediate alerts for vehicles needing attention.
-* **Vehicle Management:** Add, edit, and remove vehicles (Make, Model, Year, VIN, Current Mileage) with ease.
-* **Maintenance Logs:** Keep a chronological, detailed history of all services performed, including costs, dates, and specific notes.
-* **Smart Reminders:** Set custom alerts based on either target dates or specific mileage thresholds (e.g., "Oil Change in 3,000 miles" or "Registration renewal next month").
-* **Responsive Design:** Fully optimized for both desktop and mobile viewing so you can log maintenance right from the mechanic's waiting room.
+## Run Locally
 
----
-https://26860324ke.github.io/Vehicle-Maintenance-Tracker/
+**Prerequisites:**  Node.js
+
+
+1. Install dependencies:
+   `npm install`
+2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
+3. Run the app:
+   `npm run dev`

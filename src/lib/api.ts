@@ -20,7 +20,7 @@ import {
   query, 
   where 
 } from 'firebase/firestore';
-import { auth, db, handleFirestoreError, OperationType } from './firebase';
+import { auth, db, handleFirestoreError, OperationType, cleanUndefined } from './firebase';
 import { User, Vehicle, MaintenanceLog, Reminder, ReminderType, AuthResponse } from '../types';
 
 // Storage Helper Keys
@@ -303,7 +303,7 @@ export const api = {
       };
 
       try {
-        await setDoc(doc(db, 'vehicles', id), newVehicle);
+        await setDoc(doc(db, 'vehicles', id), cleanUndefined(newVehicle));
         return newVehicle;
       } catch (error) {
         handleFirestoreError(error, OperationType.CREATE, pathStr);
@@ -333,7 +333,7 @@ export const api = {
         if (data.vin !== undefined) updatedVehicle.vin = data.vin.toUpperCase().trim();
         if (data.currentMileage !== undefined) updatedVehicle.currentMileage = Number(data.currentMileage);
 
-        await setDoc(vehicleRef, updatedVehicle);
+        await setDoc(vehicleRef, cleanUndefined(updatedVehicle));
         return updatedVehicle;
       } catch (error) {
         handleFirestoreError(error, OperationType.UPDATE, pathStr);
@@ -357,7 +357,7 @@ export const api = {
           currentMileage: Number(mileage),
         } as Vehicle;
 
-        await setDoc(vehicleRef, updated);
+        await setDoc(vehicleRef, cleanUndefined(updated));
         return updated;
       } catch (error) {
         handleFirestoreError(error, OperationType.UPDATE, pathStr);
@@ -430,7 +430,7 @@ export const api = {
       };
 
       try {
-        await setDoc(doc(db, 'vehicles', vehicleId, 'logs', id), newLog);
+        await setDoc(doc(db, 'vehicles', vehicleId, 'logs', id), cleanUndefined(newLog));
         return newLog;
       } catch (error) {
         handleFirestoreError(error, OperationType.CREATE, pathStr);
@@ -457,7 +457,7 @@ export const api = {
         if (data.mileageAtService !== undefined) updated.mileageAtService = Number(data.mileageAtService);
         if (data.notes !== undefined) updated.notes = data.notes.trim();
 
-        await setDoc(logRef, updated);
+        await setDoc(logRef, cleanUndefined(updated));
         return updated;
       } catch (error) {
         handleFirestoreError(error, OperationType.UPDATE, pathStr);
@@ -513,7 +513,7 @@ export const api = {
       };
 
       try {
-        await setDoc(doc(db, 'vehicles', vehicleId, 'reminders', id), newReminder);
+        await setDoc(doc(db, 'vehicles', vehicleId, 'reminders', id), cleanUndefined(newReminder));
         return newReminder;
       } catch (error) {
         handleFirestoreError(error, OperationType.CREATE, pathStr);
@@ -538,7 +538,7 @@ export const api = {
 
         if (data.targetMileage !== undefined) updated.targetMileage = data.targetMileage ? Number(data.targetMileage) : undefined;
 
-        await setDoc(reminderRef, updated);
+        await setDoc(reminderRef, cleanUndefined(updated));
         return updated;
       } catch (error) {
         handleFirestoreError(error, OperationType.UPDATE, pathStr);
@@ -561,7 +561,7 @@ export const api = {
           isCompleted: true,
         } as Reminder;
 
-        await setDoc(reminderRef, updated);
+        await setDoc(reminderRef, cleanUndefined(updated));
         return updated;
       } catch (error) {
         handleFirestoreError(error, OperationType.UPDATE, pathStr);

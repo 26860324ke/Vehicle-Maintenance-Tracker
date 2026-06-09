@@ -32,6 +32,40 @@ export default function VehicleDetailScreen() {
     }
   };
 
+  const serviceTypesMatch = (type1: string, type2: string): boolean => {
+    const t1 = type1.trim().toLowerCase();
+    const t2 = type2.trim().toLowerCase();
+    if (t1 === t2) return true;
+
+    const langMap: Record<string, string> = {
+      'oil change': '機油與油芯更換',
+      'tire rotation': '輪胎對調與平衡',
+      'brake pad replacement': '煞車片更換',
+      'brake fluid flush': '煞車油更換',
+      'engine cabin filter': '引擎或冷氣濾網',
+      'spark plug upgrade': '火星塞升級與更換',
+      'timing belt renewal': '正時皮帶/皮帶更換',
+      'battery inspection': '電瓶檢測與更換',
+      'transmission fluid flush': '變速箱油更換',
+      'coolant refill': '水箱冷卻液補充/更換',
+      'general inspection': '常規全車檢查 / 診斷',
+      'general inspection / diagnostic': '常規全車檢查 / 診斷',
+      'other repair': '其他特定維修項目',
+      'other specific repair': '其他特定維修項目'
+    };
+
+    for (const [en, zh] of Object.entries(langMap)) {
+      const enLower = en.toLowerCase();
+      const zhLower = zh.toLowerCase();
+      
+      if ((t1 === enLower && t2 === zhLower) || (t1 === zhLower && t2 === enLower)) {
+        return true;
+      }
+    }
+
+    return false;
+  };
+
   const handleAddLog = async (data: {
     date: string;
     serviceType: string;
@@ -45,17 +79,28 @@ export default function VehicleDetailScreen() {
       // Auto-schedule subsequent mileage reminder for "next time" maintenance
       const mapping: Record<string, number> = {
         'Oil Change': 5000,
+        '機油與油芯更換': 5000,
         'Tire Rotation': 8000,
+        '輪胎對調與平衡': 8000,
         'Brake Pad Replacement': 30000,
+        '煞車片更換': 30000,
         'Brake Fluid Flush': 30000,
+        '煞車油更換': 30000,
         'Engine Cabin Filter': 25000,
+        '引擎或冷氣濾網': 25000,
         'Spark Plug Upgrade': 50000,
+        '火星塞升級與更換': 50000,
         'Timing Belt Renewal': 70000,
+        '正時皮帶/皮帶更換': 70000,
         'Battery Inspection': 25000,
+        '電瓶檢測與更換': 25000,
         'Transmission Fluid Flush': 50000,
+        '變速箱油更換': 50000,
         'Coolant Refill': 50000,
+        '水箱冷卻液補充/更換': 50000,
         'General Inspection': 8000,
         'General Inspection / Diagnostic': 8000,
+        '常規全車檢查 / 診斷': 8000,
       };
 
       const addVal = mapping[data.serviceType] || 8000;
@@ -63,7 +108,7 @@ export default function VehicleDetailScreen() {
 
       // Complete previous active reminders of this same maintenance category to ensure cleanliness
       const previousMatch = (reminders || []).filter(
-        (r) => !r.isCompleted && r.serviceType.toLowerCase() === data.serviceType.trim().toLowerCase()
+        (r) => !r.isCompleted && serviceTypesMatch(r.serviceType, data.serviceType)
       );
 
       for (const oldRem of previousMatch) {
@@ -112,7 +157,24 @@ export default function VehicleDetailScreen() {
 
   const handleCompleteReminder = async (remId: string) => {
     try {
+      const reminder = (reminders || []).find(r => r.id === remId);
       await api.reminders.complete(activeVehicleDetails.id, remId);
+
+      // Auto-create service history log for completed category trace to enrich logging flow
+      if (reminder) {
+        try {
+          await api.logs.create(activeVehicleDetails.id, {
+            date: new Date().toISOString().split('T')[0],
+            serviceType: reminder.serviceType,
+            cost: 0,
+            mileageAtService: activeVehicleDetails.currentMileage,
+            notes: `Completed from alert reminder: ${reminder.serviceType}`,
+          });
+        } catch (errLog) {
+          console.warn('Could not auto-add maintenance log trace for completed reminder:', errLog);
+        }
+      }
+
       await refreshAllData();
     } catch (err: any) {
       throw new Error(err.message || 'Could not mark reminder complete');
