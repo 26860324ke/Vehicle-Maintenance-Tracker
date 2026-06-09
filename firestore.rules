@@ -1,0 +1,138 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global default-deny safety net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // Check if the user owns the parent vehicle document
+    function getVehicleOwner(vehicleId) {
+      return get(/databases/$(database)/documents/vehicles/$(vehicleId)).data.userId;
+    }
+
+    function isVehicleOwner(vehicleId) {
+      return isSignedIn() && getVehicleOwner(vehicleId) == request.auth.uid;
+    }
+
+    // Entity-specific validators
+    function isValidUser(data) {
+      return data.keys().hasAll(['id', 'email', 'name', 'createdAt'])
+        && data.id is string && data.id.size() <= 128
+        && data.email is string && data.email.size() <= 256
+        && data.name is string && data.name.size() <= 200
+        && data.createdAt is string
+        && (!data.keys().hasAny(['passwordHash']) || (data.passwordHash is string && data.passwordHash.size() <= 128));
+    }
+
+    function isValidVehicle(data) {
+      return data.keys().hasAll(['id', 'userId', 'make', 'model', 'year', 'vin', 'currentMileage', 'createdAt'])
+        && data.keys().size() == 8
+        && data.id is string && data.id.size() <= 128
+        && data.userId is string && data.userId.size() <= 128
+        && data.make is string && data.make.size() <= 100
+        && data.model is string && data.model.size() <= 100
+        && data.year is int && data.year >= 1900 && data.year <= 2100
+        && data.vin is string && data.vin.size() <= 17
+        && (data.currentMileage is int || data.currentMileage is float) && data.currentMileage >= 0 && data.currentMileage <= 2000000;
+    }
+
+    function isValidLog(data) {
+      return data.keys().hasAll(['id', 'vehicleId', 'date', 'serviceType', 'cost', 'mileageAtService', 'notes', 'createdAt'])
+        && data.keys().size() == 8
+        && data.id is string && data.id.size() <= 128
+        && data.vehicleId is string && data.vehicleId.size() <= 128
+        && data.date is string && data.date.size() <= 20
+        && data.serviceType is string && data.serviceType.size() <= 200
+        && (data.cost is int || data.cost is float) && data.cost >= 0 && data.cost <= 100000
+        && (data.mileageAtService is int || data.mileageAtService is float) && data.mileageAtService >= 0 && data.mileageAtService <= 2000000
+        && data.notes is string && data.notes.size() <= 5000;
+    }
+
+    function isValidReminder(data) {
+      return data.keys().hasAll(['id', 'vehicleId', 'serviceType', 'type', 'isCompleted', 'createdAt'])
+        && data.id is string && data.id.size() <= 128
+        && data.vehicleId is string && data.vehicleId.size() <= 128
+        && data.serviceType is string && data.serviceType.size() <= 200
+        && data.type is string && (data.type == 'mileage' || data.type == 'date')
+        && data.isCompleted is bool
+        && (!data.keys().hasAny(['targetMileage']) || (data.targetMileage is int && data.targetMileage >= 0 && data.targetMileage <= 2000000))
+        && (!data.keys().hasAny(['targetDate']) || (data.targetDate is string && data.targetDate.size() <= 20));
+    }
+
+    // Rules matching
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidUser(request.resource.data);
+      allow update: if isOwner(userId) && isValidUser(request.resource.data)
+        && request.resource.data.createdAt == resource.data.createdAt;
+      allow delete: if false; // Profiles are never deleted on the client
+    }
+
+    match /vehicles/{vehicleId} {
+      allow get: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      
+      allow create: if isSignedIn() 
+        && isValidId(vehicleId)
+        && isValidVehicle(request.resource.data)
+        && request.resource.data.userId == request.auth.uid;
+        
+      allow update: if isSignedIn()
+        && resource.data.userId == request.auth.uid
+        && isValidVehicle(request.resource.data)
+        && request.resource.data.userId == resource.data.userId
+        && request.resource.data.createdAt == resource.data.createdAt;
+        
+      allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+    }
+
+    match /vehicles/{vehicleId}/logs/{logId} {
+      allow get: if isVehicleOwner(vehicleId);
+      allow list: if isVehicleOwner(vehicleId);
+      
+      allow create: if isVehicleOwner(vehicleId)
+        && isValidId(logId)
+        && isValidLog(request.resource.data)
+        && request.resource.data.vehicleId == vehicleId;
+        
+      allow update: if isVehicleOwner(vehicleId)
+        && isValidLog(request.resource.data)
+        && request.resource.data.vehicleId == resource.data.vehicleId
+        && request.resource.data.createdAt == resource.data.createdAt;
+        
+      allow delete: if isVehicleOwner(vehicleId);
+    }
+
+    match /vehicles/{vehicleId}/reminders/{reminderId} {
+      allow get: if isVehicleOwner(vehicleId);
+      allow list: if isVehicleOwner(vehicleId);
+      
+      allow create: if isVehicleOwner(vehicleId)
+        && isValidId(reminderId)
+        && isValidReminder(request.resource.data)
+        && request.resource.data.vehicleId == vehicleId;
+        
+      allow update: if isVehicleOwner(vehicleId)
+        && isValidReminder(request.resource.data)
+        && request.resource.data.vehicleId == resource.data.vehicleId
+        && request.resource.data.createdAt == resource.data.createdAt;
+        
+      allow delete: if isVehicleOwner(vehicleId);
+    }
+  }
+}

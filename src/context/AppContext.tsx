@@ -42,6 +42,7 @@ interface AppContextType {
   // Auth Operations
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string) => Promise<void>;
+  loginWithGoogle: () => Promise<void>;
   logout: () => void;
   clearAuthError: () => void;
 }
@@ -109,8 +110,10 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
         setIsAuthenticated(true);
         setTokenState(savedToken);
         setActiveTab('dashboard');
-      } catch (err) {
-        console.error('Invalid saved token, logging out', err);
+      } catch (err: any) {
+        if (err?.message !== 'No active sessions found.') {
+          console.warn('Session restoration skipped:', err?.message || err);
+        }
         setToken(null);
         setTokenState(null);
         setIsAuthenticated(false);
@@ -188,6 +191,21 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const loginWithGoogle = async () => {
+    setAuthError(null);
+    try {
+      const res = await api.auth.loginWithGoogle();
+      setToken(res.token);
+      setTokenState(res.token);
+      setUser(res.user);
+      setIsAuthenticated(true);
+      setActiveTab('dashboard');
+    } catch (err: any) {
+      setAuthError(err.message || 'Google Sign-In failed');
+      throw err;
+    }
+  };
+
   const logout = () => {
     setToken(null);
     setTokenState(null);
@@ -228,6 +246,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
         navigateTo,
         login,
         register,
+        loginWithGoogle,
         logout,
         clearAuthError,
       }}

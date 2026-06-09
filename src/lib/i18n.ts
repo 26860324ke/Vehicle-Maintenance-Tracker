@@ -34,13 +34,13 @@ export const TRANSLATIONS: Record<LanguageType, Record<string, string>> = {
     'auth.loadingDesc': 'Initializing persistent database sessions...',
     'auth.signInTitle': 'Sign In to Workspace',
     'auth.signUpTitle': 'Create Garage Account',
-    'auth.email': 'Garage Email Address',
-    'auth.password': 'Security Password',
+    'auth.email': 'Email Address',
+    'auth.password': 'Password',
     'auth.fullName': 'Your Full Name',
-    'auth.submitSignIn': 'Accredited Sign In',
+    'auth.submitSignIn': 'Sign In',
     'auth.submitSignUp': 'Bootstrap Workspace Account',
     'auth.haveAccount': 'Already have an account?',
-    'auth.needAccount': 'Need a garage account?',
+    'auth.needAccount': 'Need a account?',
     'auth.signingIn': 'Verifying Credentials...',
     'auth.registering': 'Creating Account...',
     'auth.toggleSignIn': 'Sign In',
@@ -49,6 +49,8 @@ export const TRANSLATIONS: Record<LanguageType, Record<string, string>> = {
     'auth.descRegister': 'Start tracking your automobile service records',
     'auth.missingCredentials': 'Please fill in all standard credentials.',
     'auth.missingName': 'Please provide your name for account set-up.',
+    'auth.orContinueWith': 'Or continue with',
+    'auth.continueWithGoogle': 'Continue with Google',
 
     // Dashboard Screen
     'dash.annualSpend': 'Annual Fleet Spend',
@@ -276,6 +278,8 @@ export const TRANSLATIONS: Record<LanguageType, Record<string, string>> = {
     'auth.descRegister': '註冊帳戶以開始追蹤和記錄您的汽車保養履歷',
     'auth.missingCredentials': '請輸入完整的登入帳密。',
     'auth.missingName': '請輸入您的姓名以進行帳戶設定。',
+    'auth.orContinueWith': '或使用其他方式登入',
+    'auth.continueWithGoogle': '使用 Google 帳戶登入',
 
     // Dashboard Screen
     'dash.annualSpend': '年度車隊支出',
