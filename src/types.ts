@@ -36,7 +36,7 @@ export interface Reminder {
   vehicleId: string; // Belongs to a Vehicle
   serviceType: string; // e.g. "Oil Change", "Tire Rotation"
   type: ReminderType;
-  targetMileage?: number; // For mileage-based alerts (e.g. at 120,000 miles)
+  targetMileage?: number; // For mileage-based alerts (e.g. at 120,000 km)
   targetDate?: string;    // For date-based alerts (e.g. YYYY-MM-DD)
   isCompleted: boolean;
   createdAt: string;

@@ -115,7 +115,7 @@ export default function VehicleList({
               {/* Action trigger hooks */}
               <div className="flex gap-2.5 pt-1">
                 <button
-                  id={`btn-log-miles-${v.id}`}
+                  id={`btn-log-km-${v.id}`}
                   onClick={() => onLogMileage(v)}
                   className="flex-1 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-xs py-2 rounded-xl text-center cursor-pointer transition flex items-center justify-center space-x-1"
                 >

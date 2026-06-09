@@ -63,15 +63,6 @@ export default function VehicleDetail({
       return;
     }
 
-    if (milNum < vehicle.currentMileage) {
-      const rollbackConfirm = languagePreference === 'zh-TW'
-        ? '新輸入的里程錶數值低於目前系統登記之紀錄。您確定要將里程錶往回設定嗎？'
-        : 'The value is lower than current record. Confirm rolling back odometer?';
-      if (!window.confirm(rollbackConfirm)) {
-        return;
-      }
-    }
-
     setIsSavingMileage(true);
     try {
       await onUpdateMileage(milNum);
@@ -230,6 +221,14 @@ export default function VehicleDetail({
                   </div>
                 </div>
               </div>
+
+              {Number(mileageInputValue) < vehicle.currentMileage && (
+                <div className="bg-amber-50 border border-amber-100 rounded-lg p-3 text-amber-800 text-[11px] leading-relaxed">
+                  ⚠️ {languagePreference === 'zh-TW' 
+                    ? '重要提示：您輸入的里程數低於目前記錄，這將促使里程計數倒退，但您仍可點擊下方儲存。' 
+                    : 'Note: You are entering a mileage lower than currently recorded, which will roll back the odometer.'}
+                </div>
+              )}
 
               <div className="flex items-start space-x-2 text-[10px] text-slate-500">
                 <Info className="h-4 w-4 text-blue-500 shrink-0" />

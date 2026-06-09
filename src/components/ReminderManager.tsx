@@ -66,8 +66,8 @@ export default function ReminderManager({
     setRemServiceType('Oil Change');
     setCustomServiceType('');
     setRemType(ReminderType.MILEAGE);
-    // Suggest 5,000 km or 3,000 miles offset based on preference
-    const offset = unitPreference === 'metric' ? 5000 : 3000;
+    // Suggest 5,000 km offset
+    const offset = 5000;
     setRemTargetMileage((currentMileage + offset).toString());
     setRemTargetDate('');
     setShowConfigModal(true);

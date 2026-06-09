@@ -1,6 +1,5 @@
 import React from 'react';
 import { useAppState } from '../context/AppContext';
-import { convertMileageGuideline } from '../lib/units';
 import { 
   User, CheckCircle, ShieldAlert, LogOut, Code, Library, FileJson, Sparkles
 } from 'lucide-react';
@@ -20,21 +19,50 @@ export default function SettingsScreen() {
 
   const mockInstructions = [
     { 
-      rule: t('settings.oilChange'), 
-      frequency: `${t('settings.oilChange')} - ${t('settings.oilChangeDesc')}` 
+      rule: languagePreference === 'zh-TW' ? '機油與油芯更換 (Oil Change)' : 'Oil Change', 
+      km: '5,000 - 8,000 km',
+      time: languagePreference === 'zh-TW' ? '6 個月 (若未達里程)' : '6 Months (if mileage not reached)'
     },
     { 
-      rule: t('settings.tireRot'), 
-      frequency: `${t('settings.tireRot')} - ${t('settings.tireRotDesc')}` 
+      rule: languagePreference === 'zh-TW' ? '前後輪對調跑位 (Tire Rotations)' : 'Tire Rotations', 
+      km: '8,000 - 13,000 km',
+      time: languagePreference === 'zh-TW' ? '6 個月 (若未達里程)' : '6 Months (if mileage not reached)'
     },
     { 
-      rule: t('settings.airFilter'), 
-      frequency: `${t('settings.airFilter')} - ${t('settings.airFilterDesc')}` 
+      rule: languagePreference === 'zh-TW' ? '引擎空氣濾網替換 (Engine Air Filter)' : 'Engine Air Filter replacement', 
+      km: '25,000 - 50,000 km',
+      time: languagePreference === 'zh-TW' ? '12 個月 / 1 年 (若未達里程)' : '12 Months / 1 Year (if mileage not reached)'
     },
     { 
-      rule: t('settings.brakeFluid'), 
-      frequency: `${t('settings.brakeFluid')} - ${t('settings.brakeFluidDesc')}` 
+      rule: languagePreference === 'zh-TW' ? '煞車液循環更換 (Brake Fluid Flush)' : 'Brake Fluid Flush', 
+      km: '30,000 - 70,000 km',
+      time: languagePreference === 'zh-TW' ? '24 個月 / 2 年 (若未達里程)' : '24 Months / 2 Years (if mileage not reached)'
     },
+    { 
+      rule: languagePreference === 'zh-TW' ? '空調冷氣濾網更換 (Cabin Air Filter)' : 'Cabin Air Filter replacement', 
+      km: '20,000 - 25,000 km',
+      time: languagePreference === 'zh-TW' ? '12 個月 / 1 年 (若未達里程)' : '12 Months / 1 Year (if mileage not reached)'
+    },
+    { 
+      rule: languagePreference === 'zh-TW' ? '火星塞替換規格 (Spark Plugs)' : 'Spark Plugs Renewal', 
+      km: '100,000 - 160,000 km',
+      time: languagePreference === 'zh-TW' ? '60 個月 / 5 年 (若未達里程)' : '60 Months / 5 Years (if mileage not reached)'
+    },
+    { 
+      rule: languagePreference === 'zh-TW' ? '變速箱油保養 (Transmission Fluid)' : 'Transmission Fluid Flush', 
+      km: '50,500 - 100,000 km',
+      time: languagePreference === 'zh-TW' ? '36 個月 / 3 年 (若未達里程)' : '36 Months / 3 Years (if mileage not reached)'
+    },
+    { 
+      rule: languagePreference === 'zh-TW' ? '引擎冷卻水循環替換 (Coolant Flush)' : 'Coolant Flush & Refill', 
+      km: '50,000 - 80,000 km',
+      time: languagePreference === 'zh-TW' ? '36 個月 / 3 年 (若未達里程)' : '36 Months / 3 Years (if mileage not reached)'
+    },
+    { 
+      rule: languagePreference === 'zh-TW' ? '車用蓄電池健康檢測 (Battery Check)' : 'Battery Inspection & Care', 
+      km: '16,000 - 25,000 km',
+      time: languagePreference === 'zh-TW' ? '6 - 12 個月 (若未達里程)' : '6 - 12 Months (if mileage not reached)'
+    }
   ];
 
   return (
@@ -136,7 +164,7 @@ export default function SettingsScreen() {
 
         {/* OEM Guidelines / Best practices card (colspan 2 on desktop) */}
         <div className="md:col-span-2 bg-white border border-slate-100 rounded-xl p-5 shadow-sm space-y-4">
-          <div className="flex items-center space-x-2 pb-3 border-b border-slate-50">
+          <div className="flex items-center space-x-2 pb-3 border-b border-slate-100">
             <Sparkles className="h-4 w-4 text-blue-500" />
             <h3 className="font-bold text-slate-900 text-sm">{t('settings.intervalTitle')}</h3>
           </div>
@@ -145,13 +173,31 @@ export default function SettingsScreen() {
             {t('settings.recommended')}
           </p>
 
-          <div className="divide-y divide-slate-100">
-            {mockInstructions.map((item, idx) => (
-              <div key={idx} className="py-2.5 flex items-start justify-between text-xs">
-                <div className="font-bold text-slate-800">{item.rule}</div>
-                <div className="text-slate-600 text-right font-medium max-w-[300px]">{item.frequency}</div>
-              </div>
-            ))}
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr className="border-b border-slate-100 text-[10px] font-bold text-slate-400 font-mono tracking-wider uppercase">
+                  <th className="pb-2.5 pr-2">{languagePreference === 'zh-TW' ? '保養耗材項目' : 'Service Target Item'}</th>
+                  <th className="pb-2.5 pr-2 text-right">{languagePreference === 'zh-TW' ? '里程推薦值 (公里)' : 'Distance Guideline (KM)'}</th>
+                  <th className="pb-2.5 text-right">{languagePreference === 'zh-TW' ? '推薦年限 (若里程未達)' : 'Time Limit Guideline (if mileage not reached)'}</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {mockInstructions.map((item, idx) => (
+                  <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
+                    <td className="py-2.5 pr-2 font-semibold text-slate-800">
+                      {item.rule}
+                    </td>
+                    <td className="py-2.5 pr-2 text-right text-slate-700 font-mono font-medium whitespace-nowrap">
+                      {item.km}
+                    </td>
+                    <td className="py-2.5 text-right text-indigo-600 font-medium whitespace-nowrap">
+                      {item.time}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       </div>

@@ -43,24 +43,22 @@ export default function VehicleDetailScreen() {
       await api.logs.create(activeVehicleDetails.id, data);
 
       // Auto-schedule subsequent mileage reminder for "next time" maintenance
-      const isMetric = unitPreference === 'metric';
-      const mapping: Record<string, { miles: number; km: number }> = {
-        'Oil Change': { miles: 3000, km: 5000 },
-        'Tire Rotation': { miles: 5000, km: 8000 },
-        'Brake Pad Replacement': { miles: 20000, km: 30000 },
-        'Brake Fluid Flush': { miles: 20000, km: 30000 },
-        'Engine Cabin Filter': { miles: 15000, km: 25000 },
-        'Spark Plug Upgrade': { miles: 30000, km: 50000 },
-        'Timing Belt Renewal': { miles: 45000, km: 70000 },
-        'Battery Inspection': { miles: 15000, km: 25000 },
-        'Transmission Fluid Flush': { miles: 30000, km: 50000 },
-        'Coolant Refill': { miles: 30000, km: 50000 },
-        'General Inspection': { miles: 5000, km: 8000 },
-        'General Inspection / Diagnostic': { miles: 5000, km: 8000 },
+      const mapping: Record<string, number> = {
+        'Oil Change': 5000,
+        'Tire Rotation': 8000,
+        'Brake Pad Replacement': 30000,
+        'Brake Fluid Flush': 30000,
+        'Engine Cabin Filter': 25000,
+        'Spark Plug Upgrade': 50000,
+        'Timing Belt Renewal': 70000,
+        'Battery Inspection': 25000,
+        'Transmission Fluid Flush': 50000,
+        'Coolant Refill': 50000,
+        'General Inspection': 8000,
+        'General Inspection / Diagnostic': 8000,
       };
 
-      const offset = mapping[data.serviceType] || { miles: 5000, km: 8000 };
-      const addVal = isMetric ? offset.km : offset.miles;
+      const addVal = mapping[data.serviceType] || 8000;
       const targetMileage = data.mileageAtService + addVal;
 
       // Complete previous active reminders of this same maintenance category to ensure cleanliness

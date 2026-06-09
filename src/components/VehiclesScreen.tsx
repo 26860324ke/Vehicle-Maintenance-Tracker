@@ -15,6 +15,9 @@ export default function VehiclesScreen() {
   const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null);
   const [mileageUpdateVehicle, setMileageUpdateVehicle] = useState<Vehicle | null>(null);
   const [newMileageValue, setNewMileageValue] = useState('');
+  const [deletingVehicleId, setDeletingVehicleId] = useState<string | null>(null);
+  const [deletingVehicleName, setDeletingVehicleName] = useState<string>('');
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -23,6 +26,9 @@ export default function VehiclesScreen() {
     setShowFormModal(false);
     setMileageUpdateVehicle(null);
     setNewMileageValue('');
+    setDeletingVehicleId(null);
+    setDeletingVehicleName('');
+    setDeleteError(null);
   };
 
   const handleOpenRegister = () => {
@@ -35,18 +41,20 @@ export default function VehiclesScreen() {
     setShowFormModal(true);
   };
 
-  const handleDeleteVehicle = async (id: string, name: string) => {
-    const msg = languagePreference === 'zh-TW' 
-      ? `您確定要刪除車輛「${name}」嗎？\n該車輛的所有歷史保養紀錄及已設定的排程提醒將會被永久移除且無法還原。`
-      : `Are you absolutely sure you want to delete ${name}?\nAll historical service items and scheduled reminders for this vehicle will retrieve permanent removal.`;
-    if (!window.confirm(msg)) {
-      return;
-    }
+  const handleDeleteVehicle = (id: string, name: string) => {
+    setDeletingVehicleId(id);
+    setDeletingVehicleName(name);
+    setDeleteError(null);
+  };
+
+  const confirmDeleteVehicle = async () => {
+    if (!deletingVehicleId) return;
     try {
-      await api.vehicles.delete(id);
+      await api.vehicles.delete(deletingVehicleId);
       await refreshAllData();
+      resetFormState();
     } catch (err: any) {
-      alert(err.message || (languagePreference === 'zh-TW' ? '無法刪除指定車輛' : 'Could not delete specified vehicle'));
+      setDeleteError(err.message || (languagePreference === 'zh-TW' ? '無法刪除指定車輛' : 'Could not delete specified vehicle'));
     }
   };
 
@@ -94,15 +102,6 @@ export default function VehiclesScreen() {
     if (isNaN(milNum) || milNum < 0) {
       alert(languagePreference === 'zh-TW' ? '里程錶數值不得為負數。' : 'Odometer value cannot be negative.');
       return;
-    }
-
-    if (milNum < mileageUpdateVehicle.currentMileage) {
-      const confirmMsg = languagePreference === 'zh-TW'
-        ? '新輸入的里程錶數值低於目前系統已記錄的值。您確定要將里程錶往回設定嗎？'
-        : 'New mileage reading is lower than recorded mileage. Confirm setting back odometer?';
-      if (!window.confirm(confirmMsg)) {
-        return;
-      }
     }
 
     try {
@@ -201,6 +200,14 @@ export default function VehiclesScreen() {
                 />
               </div>
 
+              {Number(newMileageValue) < mileageUpdateVehicle.currentMileage && (
+                <div className="bg-amber-50 border border-amber-100 rounded-lg p-3 text-amber-800 text-[11px] leading-relaxed">
+                  ⚠️ {languagePreference === 'zh-TW' 
+                    ? '重要提示：您輸入的里程數低於目前記錄，這將促使里程計數倒退，但您仍可點擊下方儲存。' 
+                    : 'Note: You are entering a mileage lower than currently recorded, which will roll back the odometer.'}
+                </div>
+              )}
+
               <div className="flex items-start space-x-2 text-[10px] text-slate-400">
                 <Info className="h-3.5 w-3.5 text-blue-500 shrink-0 mt-0.5" />
                 <span>{languagePreference === 'zh-TW' ? '調進里程錶讀數時，系統會立即重新審查所有耗材及零件通知，即時更新警報狀態。' : 'Advancing the odometer updates notification thresholds, instantly auditing alerts that are due.'}</span>
@@ -224,6 +231,65 @@ export default function VehiclesScreen() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Custom Delete Vehicle Confirmation Modal */}
+      {deletingVehicleId && (
+        <div id="delete-vehicle-modal" className="fixed inset-0 bg-slate-950/40 backdrop-blur-xs flex items-center justify-center p-4 z-50 text-xs animate-fade-in">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm border border-slate-100 overflow-hidden transform scale-95 md:scale-100 transition duration-300">
+            <div className="bg-red-600 text-white px-5 py-4 flex items-center justify-between">
+              <h3 className="font-bold text-sm uppercase tracking-wider font-mono">
+                {languagePreference === 'zh-TW' ? '確認刪除車輛' : 'Confirm Vehicle Deletion'}
+              </h3>
+              <button 
+                id="btn-close-delete-vehicle-modal"
+                onClick={resetFormState} 
+                className="text-white hover:text-slate-100 transition cursor-pointer"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="p-5 space-y-4">
+              <div className="bg-red-50 p-4 rounded-xl border border-red-100 text-red-800">
+                <p className="font-bold text-xs">
+                  {languagePreference === 'zh-TW' 
+                    ? `確定要刪除「${deletingVehicleName}」？` 
+                    : `Delete "${deletingVehicleName}"?`}
+                </p>
+                <p className="mt-2 text-[11px] text-red-700 leading-relaxed">
+                  {languagePreference === 'zh-TW' 
+                    ? '該車輛的所有歷史保養紀錄及已設定的排程提醒將會被永久移除且無法還原。'
+                    : 'All historical service items and scheduled reminders for this vehicle will retrieve permanent removal.'}
+                </p>
+              </div>
+
+              {deleteError && (
+                <p id="delete-vehicle-error" className="text-red-700 font-semibold text-[10px] bg-red-50 p-2 rounded-lg">
+                  {deleteError}
+                </p>
+              )}
+
+              <div className="flex justify-end space-x-2 pt-2">
+                <button
+                  id="btn-cancel-delete-vehicle"
+                  type="button"
+                  onClick={resetFormState}
+                  className="px-3.5 py-2 border border-slate-200 rounded-lg font-bold text-slate-600 hover:bg-slate-50 cursor-pointer"
+                >
+                  {t('common.cancel')}
+                </button>
+                <button
+                  id="btn-confirm-delete-vehicle-action"
+                  onClick={confirmDeleteVehicle}
+                  className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold cursor-pointer"
+                >
+                  {languagePreference === 'zh-TW' ? '確認永久刪除' : 'Confirm Delete'}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

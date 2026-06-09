@@ -631,7 +631,7 @@ apiRouter.use('/vehicles', reminderRouter); // Extends /api/vehicles/:vehicleId/
  * Global endpoint checking and classifying all uncompleted reminders for all user vehicles.
  * Returns categorization of reminders into:
  *  - "overdue" (Mileage exceeded, or Date has passed)
- *  - "due" (Mileage is within 500 miles, or Date is within 7 days)
+ *  - "due" (Mileage is within 800 km, or Date is within 7 days)
  *  - "upcoming" (Safe threshold)
  */
 apiRouter.get('/reminders/status', authenticate as any, (req: AuthenticatedRequest, res) => {
@@ -665,19 +665,19 @@ apiRouter.get('/reminders/status', authenticate as any, (req: AuthenticatedReque
           result.overdue.push({
             ...reminder,
             vehicleName,
-            statusReason: `Exceeded target of ${target.toLocaleString()} miles (current: ${current.toLocaleString()})`,
+            statusReason: `Exceeded target of ${target.toLocaleString()} km (current: ${current.toLocaleString()})`,
           });
-        } else if (target - current <= 500) {
+        } else if (target - current <= 800) {
           result.due.push({
             ...reminder,
             vehicleName,
-            statusReason: `Due soon! Only ${(target - current).toLocaleString()} miles remaining of ${target.toLocaleString()} target`,
+            statusReason: `Due soon! Only ${(target - current).toLocaleString()} km remaining of ${target.toLocaleString()} target`,
           });
         } else {
           result.upcoming.push({
             ...reminder,
             vehicleName,
-            statusReason: `Safe: ${(target - current).toLocaleString()} miles remaining of ${target.toLocaleString()} target`,
+            statusReason: `Safe: ${(target - current).toLocaleString()} km remaining of ${target.toLocaleString()} target`,
           });
         }
       } else {
