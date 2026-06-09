@@ -1,0 +1,173 @@
+import React, { useState } from 'react';
+import { useAppState } from '../context/AppContext';
+import { Car, Wrench, ShieldAlert, KeyRound, Mail, UserPlus } from 'lucide-react';
+
+export default function LoginScreen() {
+  const { login, register, authError, clearAuthError, t } = useAppState();
+  const [isRegister, setIsRegister] = useState<boolean>(false);
+  
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    clearAuthError();
+
+    if (!email || !password) {
+      setError(t('auth.missingCredentials') || 'Please fill in all standard credentials.');
+      return;
+    }
+
+    if (isRegister && !name) {
+      setError(t('auth.missingName') || 'Please provide your name for account set-up.');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      if (isRegister) {
+        await register(name, email, password);
+      } else {
+        await login(email, password);
+      }
+    } catch (err: any) {
+      setError(err.message || 'Authentication operation failed. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const toggleMode = () => {
+    setIsRegister(!isRegister);
+    setError(null);
+    clearAuthError();
+    setEmail('');
+    setPassword('');
+    setName('');
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <div className="sm:mx-auto w-full max-w-md">
+        <div className="flex justify-center items-center space-x-3 mb-2">
+          <div className="bg-blue-600 text-white p-2.5 rounded-xl shadow-md shadow-blue-200">
+            <Car className="h-7 w-7" />
+          </div>
+          <span className="text-2xl font-bold tracking-tight text-slate-950 font-sans">
+            {t('app.name')}
+          </span>
+        </div>
+        <h2 className="text-center text-sm font-medium text-slate-500 font-sans uppercase tracking-wider mb-6">
+          {t('app.desc')}
+        </h2>
+      </div>
+
+      <div className="mt-2 sm:mx-auto w-full max-w-md">
+        <div className="bg-white py-8 px-6 shadow-xl shadow-slate-100 rounded-2xl border border-slate-100 sm:px-10">
+          <div className="mb-6">
+            <h3 className="text-xl font-bold font-sans text-slate-900">
+              {isRegister ? t('auth.signUpTitle') : t('auth.signInTitle')}
+            </h3>
+            <p className="text-sm text-slate-500 mt-1">
+              {isRegister ? t('auth.descRegister') : t('auth.descLogin')}
+            </p>
+          </div>
+
+          {(error || authError) && (
+            <div className="mb-4 bg-red-50 border border-red-205 text-red-700 px-4 py-3 rounded-xl flex items-start space-x-2 text-sm">
+              <ShieldAlert className="h-5 w-5 text-red-500 shrink-0 mt-0.5" />
+              <span>{error || authError}</span>
+            </div>
+          )}
+
+          <form className="space-y-4" onSubmit={handleSubmit}>
+            {isRegister && (
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
+                  {t('auth.fullName')}
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <UserPlus className="h-4.5 w-4.5 text-slate-400" />
+                  </div>
+                  <input
+                    type="text"
+                    required
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="block w-full pl-10 pr-3 py-2.5 border border-slate-200 rounded-xl text-slate-950 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500 sm:text-sm"
+                    placeholder="John Doe"
+                  />
+                </div>
+              </div>
+            )}
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
+                {t('auth.email')}
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Mail className="h-4.5 w-4.5 text-slate-400" />
+                </div>
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="block w-full pl-10 pr-3 py-2.5 border border-slate-200 rounded-xl text-slate-950 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500 sm:text-sm"
+                  placeholder="name@example.com"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
+                {t('auth.password')}
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <KeyRound className="h-4.5 w-4.5 text-slate-400" />
+                </div>
+                <input
+                  type="password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="block w-full pl-10 pr-3 py-2.5 border border-slate-200 rounded-xl text-slate-950 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500 sm:text-sm"
+                  placeholder="••••••••••••"
+                />
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-lg shadow-blue-100 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 transition-all cursor-pointer"
+            >
+              {isLoading 
+                ? (isRegister ? t('auth.registering') : t('auth.signingIn')) 
+                : (isRegister ? t('auth.submitSignUp') : t('auth.submitSignIn'))}
+            </button>
+          </form>
+
+          <div className="mt-6 border-t border-slate-100 pt-5 flex items-center justify-between">
+            <span className="text-xs text-slate-500">
+              {isRegister ? t('auth.haveAccount') : t('auth.needAccount')}
+            </span>
+            <button
+              onClick={toggleMode}
+              className="text-xs font-bold text-blue-600 hover:text-blue-700 focus:outline-none border-b border-dashed border-blue-500"
+            >
+              {isRegister ? t('auth.toggleSignIn') : t('auth.toggleSignUp')}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

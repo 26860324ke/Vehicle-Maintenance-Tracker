@@ -1,0 +1,6 @@
+{
+  "name": "Vehicle Maintenance Tracker",
+  "description": "An application to manage vehicles, log oil changes and other repairs, and set up mileage- or date-based alerts.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
